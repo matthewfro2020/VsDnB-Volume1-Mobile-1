@@ -332,13 +332,17 @@ class Dialogue extends FlxSpriteGroup implements IDialogueScriptedClass implemen
     
     function buildText():Void
     {
+		var textHolder = new FlxZSprite();
+		textHolder.zIndex = 30;
+		add(textHolder);
+
 		dialogueText = new FlxTypeText(140, 425, Std.int(FlxG.width * 0.8), "", 32);
 		dialogueText.font = Paths.font('comic.ttf');
 		dialogueText.color = 0xFF000000;
 		dialogueText.antialiasing = true;
         cast(dialogueText, Dynamic).zIndex = 30; // safest cast
         dialogueText.completeCallback = onTypingComplete;
-		add(dialogueText);
+        textHolder.add(dialogueText);
     }
 
     /**
