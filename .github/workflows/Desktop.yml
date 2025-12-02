@@ -2,9 +2,8 @@ name: Desktop
 
 on:
   push:
-    branches: [ main ]
-  pull_request:
-    branches: [ main ]
+    tags:
+      - "v*.*.*"
   workflow_dispatch:
 
 jobs:
@@ -16,6 +15,19 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0   # needed for tags
+
+      - name: Determine Version
+        id: ver
+        run: |
+          if git describe --tags --exact-match >/dev/null 2>&1; then
+            TAG=$(git describe --tags --exact-match)
+            echo "version=$TAG" >> $GITHUB_OUTPUT
+          else
+            VERSION=dev-$(date +'%Y%m%d-%H%M')
+            echo "version=$VERSION" >> $GITHUB_OUTPUT
+          fi
 
       - uses: krdlab/setup-haxe@master
         with:
@@ -41,7 +53,6 @@ jobs:
           haxelib install hscript
           haxelib install hxvlc
           haxelib git discord_rpc https://github.com/Aidan63/linc_discord-rpc
-
           haxelib install hmm
           haxelib run hmm install
 
@@ -57,20 +68,36 @@ jobs:
         if: startsWith(matrix.os, 'macos')
         run: haxelib run lime build mac -D officialBuild
 
-      - uses: actions/upload-artifact@v4
-        if: startsWith(matrix.os, 'windows')
-        with:
-          name: windowsBuild
-          path: export/release/windows/bin/*
+      - name: Zip Desktop Build
+        run: |
+          mkdir build
+          zip -r build/desktop-${{ steps.ver.outputs.version }}-${{ matrix.os }}.zip export/release/*/*
 
       - uses: actions/upload-artifact@v4
-        if: startsWith(matrix.os, 'ubuntu')
         with:
-          name: linuxBuild
-          path: export/release/linux/bin/*
+          name: desktop-${{ matrix.os }}
+          path: build/*.zip
 
-      - uses: actions/upload-artifact@v4
-        if: startsWith(matrix.os, 'macos')
+  Release:
+    needs: Build-Desktop
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Download Artifacts
+        uses: actions/download-artifact@v4
         with:
-          name: macBuild
-          path: export/release/macos/bin/*
+          path: release
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: ${{ github.ref_name }}
+          name: "VsDave ${{ github.ref_name }}"
+          body: |
+            Automated Desktop Release  
+            Built from commit ${{ github.sha }}
+
+          files: |
+            release/**/*.zip
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
