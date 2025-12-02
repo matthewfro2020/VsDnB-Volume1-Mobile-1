@@ -8,10 +8,6 @@ on:
   workflow_dispatch:
 
 jobs:
-
-  ###########################################################################
-  # DESKTOP BUILDS
-  ###########################################################################
   Desktop:
     runs-on: ${{ matrix.os }}
     strategy:
@@ -28,10 +24,26 @@ jobs:
 
       - name: Install VLC (Linux)
         if: startsWith(matrix.os, 'ubuntu')
-        run: sudo apt install -y libvlc-dev libvlccore-dev
-
-      - name: Install Haxelibs + HMM
         run: |
+          sudo apt update
+          sudo apt install -y libvlc-dev libvlccore-dev
+
+      - name: Install Libraries
+        run: |
+          haxelib install hxcpp
+          haxelib install lime
+          haxelib install openfl
+          haxelib install flixel
+          haxelib install flixel-ui
+          haxelib install flixel-addons
+          haxelib install flxanimate
+          haxelib install json2object
+          haxelib install hscript
+          haxelib install polymod
+          haxelib install hxvlc
+          haxelib git discord_rpc https://github.com/Aidan63/linc_discord-rpc
+          haxelib git funkin.vis https://github.com/FunkinCrew/funkVis
+          haxelib git grig.audio https://github.com/FunkinCrew/grig.audio
           haxelib install hmm
           haxelib run hmm install
 
@@ -65,10 +77,6 @@ jobs:
           name: macOSBuild
           path: export/release/macos/bin/*
 
-
-  ###########################################################################
-  # MOBILE BUILDS — ANDROID + IOS
-  ###########################################################################
   Mobile:
     runs-on: ${{ matrix.os }}
     strategy:
@@ -83,7 +91,6 @@ jobs:
         with:
           haxe-version: 4.3.6
 
-      # ANDROID SETUP
       - name: Setup Android SDK + NDK
         if: startsWith(matrix.os, 'ubuntu')
         uses: android-actions/setup-android@v3
@@ -92,8 +99,22 @@ jobs:
           ndk: 25.1.8937393
           cmake: 3.22.1
 
-      - name: Install Haxelibs + HMM
+      - name: Install Libraries
         run: |
+          haxelib install hxcpp
+          haxelib install lime
+          haxelib install openfl
+          haxelib install flixel
+          haxelib install flixel-ui
+          haxelib install flixel-addons
+          haxelib install flxanimate
+          haxelib install json2object
+          haxelib install hscript
+          haxelib install polymod
+          haxelib install hxvlc
+          haxelib git discord_rpc https://github.com/Aidan63/linc_discord-rpc
+          haxelib git funkin.vis https://github.com/FunkinCrew/funkVis
+          haxelib git grig.audio https://github.com/FunkinCrew/grig.audio
           haxelib install hmm
           haxelib run hmm install
 
@@ -107,19 +128,11 @@ jobs:
 
       - name: Build Android
         if: startsWith(matrix.os, 'ubuntu')
-        run: haxelib run lime build android -D officialBuild -ONLY_ARMV7
+        run: haxelib run lime build android -D officialBuild -DMOBILE_BUILD -ONLY_ARMV7
 
-      - uses: actions/upload-artifact@v4
-        if: startsWith(matrix.os, 'ubuntu')
-        with:
-          name: androidBuild
-          path: export/release/android/bin/app/build/outputs/apk/release/*.apk
-
-
-      # IOS BUILD
       - name: Build iOS
         if: startsWith(matrix.os, 'macos')
-        run: haxelib run lime build ios -nosign -D officialBuild
+        run: haxelib run lime build ios -nosign -D officialBuild -DMOBILE_BUILD
 
       - name: Package IPA
         if: startsWith(matrix.os, 'macos')
@@ -128,6 +141,12 @@ jobs:
           mkdir Payload
           mv *.app Payload
           zip -r VsDave.ipa Payload
+
+      - uses: actions/upload-artifact@v4
+        if: startsWith(matrix.os, 'ubuntu')
+        with:
+          name: androidBuild
+          path: export/release/android/bin/app/build/outputs/apk/release/*.apk
 
       - uses: actions/upload-artifact@v4
         if: startsWith(matrix.os, 'macos')
