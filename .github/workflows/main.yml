@@ -1,0 +1,147 @@
+name: Build All Platforms
+
+on:
+  push:
+    branches: [ main ]
+    tags:
+      - "v*.*.*"
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  Build:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [windows-latest, ubuntu-latest, macos-latest]
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      # -------- VERSION DISCOVERY (Windows-safe) --------
+      - name: Determine Version
+        id: ver
+        shell: bash
+        run: |
+          if git describe --tags --exact-match >/dev/null 2>&1; then
+            TAG=$(git describe --tags --exact-match)
+            echo "version=$TAG" >> $GITHUB_OUTPUT
+          else
+            VERSION=dev-$(date +'%Y%m%d-%H%M')
+            echo "version=$VERSION" >> $GITHUB_OUTPUT
+          fi
+
+      - uses: krdlab/setup-haxe@master
+        with:
+          haxe-version: 4.3.6
+
+      # ---------------- LINUX SETUP ----------------
+      - name: Install VLC (Linux only)
+        if: startsWith(matrix.os, 'ubuntu')
+        run: |
+          sudo apt update
+          sudo apt install -y libvlc-dev libvlccore-dev
+
+      # ---------------- ANDROID SETUP ----------------
+      - name: Setup Android SDK (Linux only)
+        if: startsWith(matrix.os, 'ubuntu')
+        uses: android-actions/setup-android@v3
+        with:
+          api-level: 33
+          ndk: 25.1.8937393
+          cmake: 3.22.1
+
+      # ---------------- INSTALL HAXELIBS ----------------
+      - name: Install Haxelibs
+        run: |
+          haxelib install hxcpp
+          haxelib install lime
+          haxelib install openfl
+          haxelib install flixel
+          haxelib install flixel-ui
+          haxelib install flixel-addons
+          haxelib install flxanimate
+          haxelib install json2object
+          haxelib install polymod
+          haxelib install hscript
+          haxelib install hxvlc
+          haxelib git discord_rpc https://github.com/Aidan63/linc_discord-rpc
+          haxelib install hmm
+          haxelib run hmm install
+
+      # ---------------- ANDROID CONFIG ----------------
+      - name: Configure Android
+        if: startsWith(matrix.os, 'ubuntu')
+        run: |
+          haxelib run lime config ANDROID_SDK $ANDROID_SDK_ROOT
+          haxelib run lime config ANDROID_NDK_ROOT $ANDROID_NDK_ROOT
+          haxelib run lime config JAVA_HOME $JAVA_HOME_17_X64
+          haxelib run lime config ANDROID_SETUP true
+
+      # ---------------- PLATFORM BUILDS ----------------
+      - name: Build Windows
+        if: startsWith(matrix.os, 'windows')
+        run: haxelib run lime build windows -D officialBuild
+
+      - name: Build Linux
+        if: startsWith(matrix.os, 'ubuntu')
+        run: haxelib run lime build linux -D officialBuild
+
+      - name: Build macOS
+        if: startsWith(matrix.os, 'macos')
+        run: haxelib run lime build mac -D officialBuild
+
+      - name: Build Android
+        if: startsWith(matrix.os, 'ubuntu')
+        run: haxelib run lime build android -D officialBuild -ONLY_ARMV7
+
+      - name: Build iOS
+        if: startsWith(matrix.os, 'macos')
+        run: haxelib run lime build ios -nosign -D officialBuild -DMOBILE_BUILD
+
+      # ---------------- PACKAGE iOS IPA ----------------
+      - name: Package IPA
+        if: startsWith(matrix.os, 'macos')
+        run: |
+          cd export/release/ios/build/*-iphoneos
+          mkdir Payload
+          mv *.app Payload
+          zip -r VsDave.ipa Payload
+
+      # ---------------- ZIP OUTPUTS ----------------
+      - name: Zip Build Output
+        run: |
+          mkdir build
+          zip -r build/build-${{ steps.ver.outputs.version }}-${{ matrix.os }}.zip export/release/*/*
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.os }}-build
+          path: build/*.zip
+
+  # ------------ RELEASE JOB ------------
+  Release:
+    needs: Build
+    runs-on: ubuntu-latest
+    if: startsWith(github.ref, 'refs/tags/v')
+
+    steps:
+      - name: Download Artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: release
+
+      - name: Publish GitHub Release
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: ${{ github.ref_name }}
+          name: "VsDave ${{ github.ref_name }}"
+          body: |
+            Full automated multi-platform release  
+            Commit: ${{ github.sha }}
+          files: release/**/*.zip
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
