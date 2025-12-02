@@ -10,8 +10,9 @@ import flixel.FlxSprite;
 import flixel.sound.FlxSound;
 import scripting.IScriptedClass.IDialogueScriptedClass;
 import scripting.events.ScriptEvent;
+import util.FlxZSprite;
 
-class Speaker extends FlxSprite implements IDialogueScriptedClass implements IRegistryEntry<SpeakerData>
+class Speaker extends FlxZSprite implements IDialogueScriptedClass implements IRegistryEntry<SpeakerData>
 {
 	/**
 	 * The id of this speaker from the registry.
