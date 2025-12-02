@@ -1,121 +1,97 @@
 <?xml version="1.0" encoding="utf-8"?>
 <project>
 
-    <!-- ======================================================
-         CORE APPLICATION
-    ====================================================== -->
-    <app title="VS. Dave and Bambi"
-         file="VsDave"
-         packageName="dnbteam.daveandbambi"
-         package="dnbteam.daveandbambi"
-         main="Main"
-         version="1.0.7"
-         company="dnbteam"/>
+	<!-- Global Nil Fix -->
+	<haxedef name="HXCPP_NO_NIL"/>
+	<haxedef name="HXCPP_NO_PCH"/>
 
-    <app preloader="flixel.system.FlxPreloader"/>
-    <set name="SWF_VERSION" value="11.8"/>
+	<!-- App Info -->
+	<app title="VS. Dave and Bambi"
+		 file="VsDave"
+		 packageName="dnbteam.daveandbambi"
+		 package="dnbteam.daveandbambi"
+		 main="Main"
+		 version="1.0.7"
+		 company="dnbteam"/>
 
-    <!-- ======================================================
-         WINDOWS / DESKTOP CONFIG
-    ====================================================== -->
-    <window width="1280" height="720" fps="120" hardware="true" vsync="true" background="0x0000ffff"/>
-    <window if="desktop" allow-shaders="true" require-shaders="true" resizable="true" fullscreen="false"/>
-    <window if="mac" allow-high-dpi="true"/>
-    <window if="mobile" fullscreen="true" allow-shaders="true" require-shaders="true" allow-high-dpi="true"/>
+	<app preloader="flixel.system.FlxPreloader"/>
+	<set name="SWF_VERSION" value="11.8"/>
 
-    <!-- ======================================================
-         SOURCE & ASSETS
-    ====================================================== -->
-    <classpath name="source"/>
+	<!-- Window -->
+	<window width="1280" height="720" fps="120" hardware="true" vsync="true"/>
 
-    <assets path="assets/preload" rename="assets" exclude="*.ogg" if="web"/>
-    <assets path="assets/preload" rename="assets" exclude="*.mp3" unless="web"/>
-    <assets path="assets/preload/videos" rename="assets/videos" include="*.mp4" embed="false"/>
-    <assets path="assets/songs" library="songs" exclude="*.ogg" if="web"/>
-    <assets path="assets/songs" library="songs" exclude="*.mp3" unless="web"/>
-    <assets path="assets/shared" library="shared" exclude="*.ogg" if="web"/>
-    <assets path="assets/shared" library="shared" exclude="*.mp3" unless="web"/>
-    <assets path="assets/fonts" embed="true"/>
-    <assets path="mobile" rename="assets/mobile" if="mobile"/>
+	<window if="desktop" allow-shaders="true" require-shaders="true" resizable="true"/>
+	<window if="mac" allow-high-dpi="true"/>
+	<window if="mobile" fullscreen="true" resizable="false" allow-high-dpi="true"/>
 
-    <library name="songs" preload="true"/>
-    <section if="PRELOAD_ALL"><library name="shared" preload="true"/></section>
+	<!-- Paths -->
+	<classpath name="source"/>
 
-    <!-- ======================================================
-         HAXELIBS
-    ====================================================== -->
-    <haxelib name="flixel"/>
-    <haxelib name="flixel-addons"/>
-    <haxelib name="flixel-ui"/>
-    <haxelib name="openfl"/>
-    <haxelib name="lime"/>
-    <haxelib name="hscript"/>
-    <haxelib name="polymod"/>
-    <haxelib name="json2object"/>
-    <haxelib name="flxanimate"/>
-    <haxelib name="hxvlc" if="desktop || android"/>
-    <haxelib name="hxdiscord_rpc" if="desktop"/>
-    <haxelib name="grig.audio"/>
-    <haxelib name="funkin.vis"/>
+	<!-- Assets -->
+	<assets path="assets/preload" rename="assets"/>
+	<assets path="assets/preload/videos" rename="assets/videos" embed="false" include="*.mp4"/>
+	<assets path="assets/songs"  library="songs"/>
+	<assets path="assets/shared" library="shared"/>
+	<assets path="assets/fonts" embed="true"/>
+	<assets path="art/icons" rename="icons" embed="true"/>
 
-    <!-- ======================================================
-         GLOBAL SAFETY FLAGS
-    ====================================================== -->
-    <haxedef name="HXCPP_NO_NIL"/>
-    <haxedef name="HXCPP_STACK_TRACE"/>
-    <haxedef name="HXCPP_STACK_LINE"/>
-    <haxedef name="HXCPP_CHECK_POINTER"/>
-    <haxedef name="HXCPP_GC_BIG_BLOCKS"/>
-    <haxedef name="SCRIPTABLE"/>
-    <haxeflag name="-dce no"/>
+	<!-- Haxelibs -->
+	<haxelib name="lime"/>
+	<haxelib name="openfl"/>
+	<haxelib name="flixel"/>
+	<haxelib name="flixel-ui"/>
+	<haxelib name="flixel-addons"/>
+	<haxelib name="flxanimate"/>
+	<haxelib name="hxvlc" if="desktop || android"/>
+	<haxelib name="polymod"/>
+	<haxelib name="json2object"/>
+	<haxelib name="hscript"/>
+	<haxelib name="hxdiscord_rpc" if="desktop"/>
 
-    <!-- ======================================================
-         MACROS
-    ====================================================== -->
-    <haxeflag name="--macro" value="include('api')"/>
-    <haxeflag name="--macro" value="include('audio')"/>
-    <haxeflag name="--macro" value="include('backend')"/>
-    <haxeflag name="--macro" value="include('controls')"/>
-    <haxeflag name="--macro" value="include('data')"/>
-    <haxeflag name="--macro" value="include('graphics')"/>
-    <haxeflag name="--macro" value="include('modding')"/>
-    <haxeflag name="--macro" value="include('play')"/>
-    <haxeflag name="--macro" value="include('scripting')"/>
-    <haxeflag name="--macro" value="include('ui')"/>
-    <haxeflag name="--macro" value="include('util')"/>
+	<!-- HMM-installed libs (do NOT add as haxelib) -->
+	<haxedef name="USE_GRIG_AUDIO"/>
+	<haxedef name="USE_FUNKIN_VIS"/>
 
-    <!-- ======================================================
-         ANDROID
-    ====================================================== -->
-    <section if="android">
-        <define name="MOBILE_BUILD"/>
-        <haxedef name="HXCPP_NO_PCH"/>
+	<!-- Safety -->
+	<haxedef name="HXCPP_STACK_TRACE"/>
+	<haxedef name="HXCPP_STACK_LINE"/>
+	<haxedef name="HXCPP_CHECK_POINTER"/>
+	<haxedef name="HXCPP_GC_BIG_BLOCKS"/>
+	<haxeflag name="-dce no"/>
 
-        <config>
-            <android gradle-version="7.4.2" gradle-plugin="7.3.1"/>
-            <android platform="android-35"/>
-            <android min-sdk-version="16" target-sdk-version="30" max-sdk-version="33"/>
-            <android abi="armeabi-v7a"/>
-            <android bundle="false"/>
-        </config>
-    </section>
+	<!-- Macros -->
+	<haxeflag name="--macro" value="include('api')"/>
+	<haxeflag name="--macro" value="include('backend')"/>
+	<haxeflag name="--macro" value="include('util')"/>
+	<haxeflag name="--macro" value="include('data')"/>
+	<haxeflag name="--macro" value="include('controls')"/>
+	<haxeflag name="--macro" value="include('graphics')"/>
+	<haxeflag name="--macro" value="include('audio')"/>
+	<haxeflag name="--macro" value="include('play')"/>
+	<haxeflag name="--macro" value="include('ui')"/>
+	<haxeflag name="--macro" value="include('modding')"/>
 
-    <!-- ======================================================
-         iOS
-    ====================================================== -->
-    <section if="ios">
-        <define name="MOBILE_BUILD"/>
-        <define name="objc"/>
-        <haxeflag name="-D" value="HXCPP_NO_PCH"/>
-        <ios linker-flags="-ObjC"/>
-    </section>
+	<!-- Android -->
+	<section if="android">
+		<config>
+			<android gradle-version="7.4.2" gradle-plugin="7.3.1"/>
+			<android platform="android-35"/>
+			<android min-sdk-version="16" target-sdk-version="30" max-sdk-version="33"/>
+			<android abi="armeabi-v7a"/>
+			<android bundle="false"/>
+		</config>
+	</section>
 
-    <!-- ======================================================
-         ICONS
-    ====================================================== -->
-    <icon path="art/icons/dave16.png" size="16"/>
-    <icon path="art/icons/dave32.png" size="32"/>
-    <icon path="art/icons/dave64.png" size="64"/>
-    <icon path="art/icons/dave.png"/>
+	<!-- iOS -->
+	<section if="ios">
+		<define name="objc"/>
+		<ios linker-flags="-ObjC"/>
+	</section>
+
+	<!-- Icons -->
+	<icon path="art/icons/dave16.png" size="16"/>
+	<icon path="art/icons/dave32.png" size="32"/>
+	<icon path="art/icons/dave64.png" size="64"/>
+	<icon path="art/icons/dave.png"/>
 
 </project>
