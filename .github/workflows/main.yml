@@ -87,23 +87,24 @@ jobs:
         os: [ubuntu-latest, macos-latest]
 
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
       - name: Setup Haxe
         uses: krdlab/setup-haxe@master
         with:
           haxe-version: 4.3.6
 
-      - name: Install Android SDK + NDK
+      # --------------------------- ANDROID TOOLCHAIN ---------------------------
+
+      - name: Install Android SDK + NDK (Working Action)
         if: startsWith(matrix.os, 'ubuntu')
-        uses: android-actions/setup-android@v3
+        uses: android-actions/setup-android@v2
         with:
           api-level: 33
-          ndk: 25.1.8937393
-          cmake: 3.22.1
+          ndk-version: 23.1.7779620
+          build-tools-version: 33.0.2
 
-      - name: Install Libraries
+      - name: Install Haxelib
         run: |
           haxelib install hxcpp
           haxelib install lime
@@ -119,11 +120,10 @@ jobs:
           haxelib install hscript-iris
           haxelib install hxvlc
           haxelib git discord_rpc https://github.com/Aidan63/linc_discord-rpc
-          haxelib install extension-androidtools
           haxelib install hmm
           haxelib run hmm install
 
-      - name: Configure Android
+      - name: Configure Android for Lime
         if: startsWith(matrix.os, 'ubuntu')
         run: |
           haxelib run lime config ANDROID_SDK $ANDROID_SDK_ROOT
@@ -131,15 +131,17 @@ jobs:
           haxelib run lime config JAVA_HOME $JAVA_HOME_17_X64
           haxelib run lime config ANDROID_SETUP true
 
-      - name: Compile (Android)
+      - name: Build Android (ARMv7)
         if: startsWith(matrix.os, 'ubuntu')
-        run: haxelib run lime build android -D officialBuild -ONLY_ARMV7
+        run: haxelib run lime build android -D officialBuild -D HXCPP_NO_PCH -ONLY_ARMV7
 
-      - name: Compile (iOS)
+      # ------------------------------ iOS BUILD ------------------------------
+
+      - name: Build iOS
         if: startsWith(matrix.os, 'macos')
-        run: haxelib run lime build ios -nosign -D officialBuild
+        run: haxelib run lime build ios -D officialBuild -nosign
 
-      - name: Make IPA
+      - name: Package IPA
         if: startsWith(matrix.os, 'macos')
         run: |
           cd export/release/ios/build/*-iphoneos
@@ -147,16 +149,18 @@ jobs:
           mv *.app Payload
           zip -r VsDave.ipa Payload
 
-      - name: Upload Artifact (Android)
+      # ------------------------------ ARTIFACTS ------------------------------
+
+      - name: Upload Android
         if: startsWith(matrix.os, 'ubuntu')
         uses: actions/upload-artifact@v4
         with:
           name: androidBuild
           path: export/release/android/bin/app/build/outputs/apk/release/*.apk
 
-      - name: Upload Artifact (iOS)
+      - name: Upload iOS
         if: startsWith(matrix.os, 'macos')
         uses: actions/upload-artifact@v4
         with:
           name: iOSBuild
-          path: export/release/ios/build/Release-iphoneos/*.ipa
+          path: export/release/ios/build/*-iphoneos/*.ipa
