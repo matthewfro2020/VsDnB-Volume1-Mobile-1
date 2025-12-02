@@ -2,9 +2,8 @@ name: Mobile
 
 on:
   push:
-    branches: [ main ]
-  pull_request:
-    branches: [ main ]
+    tags:
+      - "v*.*.*"
   workflow_dispatch:
 
 jobs:
@@ -16,6 +15,19 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Determine Version
+        id: ver
+        run: |
+          if git describe --tags --exact-match >/dev/null 2>&1; then
+            TAG=$(git describe --tags --exact-match)
+            echo "version=$TAG" >> $GITHUB_OUTPUT
+          else
+            VERSION=dev-$(date +'%Y%m%d-%H%M')
+            echo "version=$VERSION" >> $GITHUB_OUTPUT
+          fi
 
       - uses: krdlab/setup-haxe@master
         with:
@@ -43,7 +55,6 @@ jobs:
           haxelib install hscript
           haxelib install hxvlc
           haxelib git discord_rpc https://github.com/Aidan63/linc_discord-rpc
-
           haxelib install hmm
           haxelib run hmm install
 
@@ -69,16 +80,45 @@ jobs:
           cd export/release/ios/build/*-iphoneos
           mkdir Payload
           mv *.app Payload
-          zip -r VsDave.ipa Payload
+          zip -r ~/ios-${{ steps.ver.outputs.version }}.ipa Payload
+
+      - name: Gather Mobile Builds
+        run: |
+          mkdir build
+          if [ -d export/release/android/bin/app/build/outputs/apk/release ]; then
+            cp export/release/android/bin/app/build/outputs/apk/release/*.apk build/android-${{ steps.ver.outputs.version }}.apk
+          fi
+          if [ -f ~/ios-${{ steps.ver.outputs.version }}.ipa ]; then
+            mv ~/ios-${{ steps.ver.outputs.version }}.ipa build/
+          fi
 
       - uses: actions/upload-artifact@v4
-        if: startsWith(matrix.os, 'ubuntu')
         with:
-          name: androidBuild
-          path: export/release/android/bin/app/build/outputs/apk/release/*.apk
+          name: mobile-builds
+          path: build/*
 
-      - uses: actions/upload-artifact@v4
-        if: startsWith(matrix.os, 'macos')
+  Release:
+    needs: Build-Mobile
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Download Artifacts
+        uses: actions/download-artifact@v4
         with:
-          name: iOSBuild
-          path: export/release/ios/build/Release-iphoneos/*.ipa
+          path: release
+
+      - name: Upload to GitHub Release
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: ${{ github.ref_name }}
+          name: "VsDave ${{ github.ref_name }} (Mobile)"
+          body: |
+            Automated Mobile Release  
+            Built from commit ${{ github.sha }}
+
+          files: |
+            release/**/*.apk
+            release/**/*.ipa
+
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
