@@ -1,0 +1,159 @@
+<?xml version="1.0" encoding="utf-8"?>
+<project>
+
+    <!-- GLOBAL FIX: Prevent thx.Nil from conflicting with Objective-C Nil -->
+    <haxedef name="HXCPP_NO_NIL"/>
+
+    <!-- _________________________ Application Settings _________________________ -->
+
+    <app title="VS. Dave and Bambi"
+         file="VsDave"
+         packageName="dnbteam.daveandbambi"
+         package="dnbteam.daveandbambi"
+         main="Main"
+         version="1.0.7"
+         company="dnbteam"/>
+
+    <app preloader="flixel.system.FlxPreloader"/>
+    <set name="SWF_VERSION" value="11.8"/>
+
+    <!-- ____________________________ Window Settings ___________________________ -->
+
+    <window width="1280" height="720" fps="120" hardware="true" vsync="true" background="0x0000ffff"/>
+    <window if="html5" resizable="true"/>
+    <window if="desktop" hardware="true" allow-shaders="true" require-shaders="true"
+            orientation="landscape" fullscreen="false" resizable="true" vsync="false"/>
+    <window if="mac" orientation="auto" fullscreen="false" resizable="true" vsync="false"
+            allow-high-dpi="true"/>
+    <window if="mobile" orientation="landscape" fullscreen="true" resizable="false"
+            allow-shaders="true" require-shaders="true" allow-high-dpi="true"/>
+
+    <!-- _____________________________ Path Settings ____________________________ -->
+
+    <classpath name="source"/>
+
+    <set name="BUILD_DIR" value="export/debug" if="debug"/>
+    <set name="BUILD_DIR" value="export/release" unless="debug"/>
+    <set name="BUILD_DIR" value="export/32bit" if="32bit"/>
+
+    <define name="mobileC" if="mobile"/>
+
+    <!-- Assets -->
+    <assets path="assets/preload" rename="assets" exclude="*.ogg" if="web"/>
+    <assets path="assets/preload" rename="assets" exclude="*.mp3" unless="web"/>
+    <assets path="assets/preload/videos" rename="assets/videos" include="*.mp4" embed="false"/>
+    <assets path="assets/songs" library="songs" exclude="*.ogg" if="web"/>
+    <assets path="assets/songs" library="songs" exclude="*.mp3" unless="web"/>
+    <assets path="assets/shared" library="shared" exclude="*.ogg" if="web"/>
+    <assets path="assets/shared" library="shared" exclude="*.mp3" unless="web"/>
+
+    <assets path="art/readme.txt" rename="PLEASE READ.txt"/>
+    <assets path="art/icons" rename="icons" embed="true"/>
+    <assets path="assets/fonts" embed="true"/>
+    <assets path="mobile" rename="assets/mobile" if="mobileC"/>
+
+    <!-- Preload logic -->
+    <define name="SHADERS_ENABLED"/>
+    <define name="PRELOAD_ALL" unless="web"/>
+    <define name="NO_PRELOAD_ALL" unless="PRELOAD_ALL"/>
+
+    <library name="songs" preload="true"/>
+
+    <section if="PRELOAD_ALL">
+        <library name="shared" preload="true"/>
+    </section>
+
+    <section if="NO_PRELOAD_ALL">
+        <library name="songs" preload="false"/>
+        <library name="shared" preload="false"/>
+    </section>
+
+    <!-- _______________________________ Libraries ______________________________ -->
+
+    <haxedev set="webgl"/>
+
+    <haxelib name="flixel"/>
+    <haxelib name="flixel-addons"/>
+    <haxelib name="flixel-ui"/>
+    <haxelib name="hxvlc" if="desktop || android"/>
+    <haxelib name="hscript"/>
+    <haxelib name="polymod"/>
+    <haxelib name="json2object"/>
+    <haxelib name="hxdiscord_rpc" if="desktop"/>
+    <haxelib name="flxanimate"/>
+    <haxelib name="grig.audio"/>
+    <haxelib name="funkin.vis"/>
+
+    <!-- Removed: extension-androidtools (does NOT exist anymore) -->
+    <!-- <haxelib name="extension-androidtools" if="android"/> -->
+
+    <!-- Misc flags -->
+    <haxedef name="FLX_NO_FOCUS_LOST_SCREEN"/>
+    <haxedef name="FLX_NO_DEBUG" unless="debug"/>
+    <haxedef name="NAPE_RELEASE_BUILD" unless="debug"/>
+    <haxedef name="HXCPP_GC_BIG_BLOCKS"/>
+    <haxedef name="HXCPP_STACK_LINE"/>
+    <haxedef name="HXCPP_STACK_TRACE"/>
+    <haxedef name="HXCPP_CHECK_POINTER"/>
+    <haxedef name="hscriptPos"/>
+
+    <!-- Polymod -->
+    <haxedef name="POLYMOD_SCRIPT_EXT" value=".hx"/>
+    <haxedef name="POLYMOD_SCRIPT_LIBRARY" value="scripts"/>
+    <haxedef name="POLYMOD_ROOT_PATH" value="scripts/"/>
+    <haxedef name="POLYMOD_APPEND_FOLDER" value="_append/"/>
+    <haxedef name="POLYMOD_MERGE_FOLDER" value="_merge/"/>
+    <haxedef name="POLYMOD_MOD_METADATA_FILE" value="_polymod_meta.json"/>
+    <haxedef name="POLYMOD_MOD_ICON_FILE" value="_polymod_icon.png/"/>
+
+    <haxedef name="openfl-enable-handle-error"/>
+    <haxeflag name="-dce no"/>
+
+    <setenv name="next"/>
+
+    <!-- Macros -->
+    <haxeflag name="--macro" value="addMetadata('@:build(util.macro.FlxMacro.buildFlxBasic())', 'flixel.FlxBasic')"/>
+    <haxeflag name="--macro" value="include('api')"/>
+    <haxeflag name="--macro" value="include('audio')"/>
+    <haxeflag name="--macro" value="include('backend')"/>
+    <haxeflag name="--macro" value="include('controls')"/>
+    <haxeflag name="--macro" value="include('data')"/>
+    <haxeflag name="--macro" value="include('graphics')"/>
+    <haxeflag name="--macro" value="include('modding')"/>
+    <haxeflag name="--macro" value="include('play')"/>
+    <haxeflag name="--macro" value="include('scripting')"/>
+    <haxeflag name="--macro" value="include('ui')"/>
+    <haxeflag name="--macro" value="include('util')"/>
+
+    <!-- ___________________________ ANDROID CONFIG ___________________________ -->
+
+    <section if="android">
+        <config>
+            <android gradle-version="7.4.2" gradle-plugin="7.3.1"/>
+            <android platform="android-35"/>
+            <android min-sdk-version="16" target-sdk-version="30" max-sdk-version="33"/>
+            <android bundle="false"/>
+            <android abi="arm64-v8a"/>
+        </config>
+    </section>
+
+    <!-- ___________________________ iOS CONFIG ___________________________ -->
+
+    <section if="ios">
+        <define name="objc"/>
+        <ios linker-flags="-ObjC"/>
+    </section>
+
+    <!-- _________________________________ Icons _______________________________ -->
+
+    <icon path="art/icons/dave16.png" size="16"/>
+    <icon path="art/icons/dave32.png" size="32"/>
+    <icon path="art/icons/dave64.png" size="64"/>
+    <icon path="art/icons/dave.png"/>
+
+    <!-- Linux fix -->
+    <target id="haxe" tool="linker" if="linux">
+        <lib name="/usr/lib64/libX11.so" if="HXCPP_M64"/>
+    </target>
+
+</project>

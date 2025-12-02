@@ -1,0 +1,162 @@
+name: Main
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  Desktop:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [windows-latest, ubuntu-latest, macos-latest]
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Haxe
+        uses: krdlab/setup-haxe@master
+        with:
+          haxe-version: 4.3.6
+
+      - name: Install libVLC (Linux)
+        if: startsWith(matrix.os, 'ubuntu')
+        run: sudo apt install libvlc-dev libvlccore-dev
+
+      - name: Install Libraries
+        run: |
+          haxelib install hxcpp
+          haxelib install lime
+          haxelib install openfl
+          haxelib install flixel
+          haxelib install flixel-tools
+          haxelib install flixel-ui
+          haxelib install flixel-addons
+          haxelib install actuate
+          haxelib install tjson
+          haxelib install hxjsonast
+          haxelib install hxCodec
+          haxelib install hscript-iris
+          haxelib install hxvlc
+          haxelib git discord_rpc https://github.com/Aidan63/linc_discord-rpc
+          haxelib install hmm
+          haxelib run hmm install
+
+      - name: Compile (Windows)
+        if: startsWith(matrix.os, 'windows')
+        run: haxelib run lime build windows -D officialBuild
+
+      - name: Compile (Linux)
+        if: startsWith(matrix.os, 'ubuntu')
+        run: haxelib run lime build linux -D officialBuild
+
+      - name: Compile (macOS)
+        if: startsWith(matrix.os, 'macos')
+        run: haxelib run lime build mac -D officialBuild
+
+      - name: Upload Artifact (Windows)
+        if: startsWith(matrix.os, 'windows')
+        uses: actions/upload-artifact@v4
+        with:
+          name: windowsBuild
+          path: export/release/windows/bin/*
+
+      - name: Upload Artifact (Linux)
+        if: startsWith(matrix.os, 'ubuntu')
+        uses: actions/upload-artifact@v4
+        with:
+          name: linuxBuild
+          path: export/release/linux/bin/*
+
+      - name: Upload Artifact (macOS)
+        if: startsWith(matrix.os, 'macos')
+        uses: actions/upload-artifact@v4
+        with:
+          name: macOSBuild
+          path: export/release/macos/bin/*
+
+  Mobile:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Haxe
+        uses: krdlab/setup-haxe@master
+        with:
+          haxe-version: 4.3.6
+
+      - name: Install Android SDK + NDK
+        if: startsWith(matrix.os, 'ubuntu')
+        uses: android-actions/setup-android@v3
+        with:
+          api-level: 33
+          ndk: 25.1.8937393
+          cmake: 3.22.1
+
+      - name: Install Libraries
+        run: |
+          haxelib install hxcpp
+          haxelib install lime
+          haxelib install openfl
+          haxelib install flixel
+          haxelib install flixel-tools
+          haxelib install flixel-ui
+          haxelib install flixel-addons
+          haxelib install actuate
+          haxelib install tjson
+          haxelib install hxjsonast
+          haxelib install hxCodec
+          haxelib install hscript-iris
+          haxelib install hxvlc
+          haxelib git discord_rpc https://github.com/Aidan63/linc_discord-rpc
+          haxelib install extension-androidtools
+          haxelib install hmm
+          haxelib run hmm install
+
+      - name: Configure Android
+        if: startsWith(matrix.os, 'ubuntu')
+        run: |
+          haxelib run lime config ANDROID_SDK $ANDROID_SDK_ROOT
+          haxelib run lime config ANDROID_NDK_ROOT $ANDROID_NDK_ROOT
+          haxelib run lime config JAVA_HOME $JAVA_HOME_17_X64
+          haxelib run lime config ANDROID_SETUP true
+
+      - name: Compile (Android)
+        if: startsWith(matrix.os, 'ubuntu')
+        run: haxelib run lime build android -D officialBuild -ONLY_ARMV7
+
+      - name: Compile (iOS)
+        if: startsWith(matrix.os, 'macos')
+        run: haxelib run lime build ios -nosign -D officialBuild
+
+      - name: Make IPA
+        if: startsWith(matrix.os, 'macos')
+        run: |
+          cd export/release/ios/build/*-iphoneos
+          mkdir Payload
+          mv *.app Payload
+          zip -r VsDave.ipa Payload
+
+      - name: Upload Artifact (Android)
+        if: startsWith(matrix.os, 'ubuntu')
+        uses: actions/upload-artifact@v4
+        with:
+          name: androidBuild
+          path: export/release/android/bin/app/build/outputs/apk/release/*.apk
+
+      - name: Upload Artifact (iOS)
+        if: startsWith(matrix.os, 'macos')
+        uses: actions/upload-artifact@v4
+        with:
+          name: iOSBuild
+          path: export/release/ios/build/Release-iphoneos/*.ipa
