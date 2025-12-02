@@ -14,7 +14,7 @@ import flixel.addons.text.FlxTypeText;
 import flixel.sound.FlxSound;
 import flixel.tweens.FlxTween;
 import flixel.util.FlxTimer;
-import flixel.util.FlxPoint;
+import flixel.math.FlxPoint;
 
 import scripting.events.ScriptEvent;
 import scripting.events.ScriptEventDispatcher;
