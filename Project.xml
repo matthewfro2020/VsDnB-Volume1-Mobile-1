@@ -1,92 +1,121 @@
 <?xml version="1.0" encoding="utf-8"?>
 <project>
 
+    <!-- ======================================================
+         CORE APPLICATION
+    ====================================================== -->
     <app title="VS. Dave and Bambi"
          file="VsDave"
          packageName="dnbteam.daveandbambi"
          package="dnbteam.daveandbambi"
          main="Main"
          version="1.0.7"
-         company="dnbteam" />
+         company="dnbteam"/>
 
     <app preloader="flixel.system.FlxPreloader"/>
     <set name="SWF_VERSION" value="11.8"/>
 
-    <!-- Window -->
-    <window width="1280" height="720" fps="120" hardware="true" vsync="true"/>
-    <window if="mobile" fullscreen="true" allow-high-dpi="true"/>
+    <!-- ======================================================
+         WINDOWS / DESKTOP CONFIG
+    ====================================================== -->
+    <window width="1280" height="720" fps="120" hardware="true" vsync="true" background="0x0000ffff"/>
+    <window if="desktop" allow-shaders="true" require-shaders="true" resizable="true" fullscreen="false"/>
+    <window if="mac" allow-high-dpi="true"/>
+    <window if="mobile" fullscreen="true" allow-shaders="true" require-shaders="true" allow-high-dpi="true"/>
 
-    <!-- Paths -->
+    <!-- ======================================================
+         SOURCE & ASSETS
+    ====================================================== -->
     <classpath name="source"/>
 
-    <assets path="assets/preload" rename="assets"/>
+    <assets path="assets/preload" rename="assets" exclude="*.ogg" if="web"/>
+    <assets path="assets/preload" rename="assets" exclude="*.mp3" unless="web"/>
     <assets path="assets/preload/videos" rename="assets/videos" include="*.mp4" embed="false"/>
-    <assets path="assets/songs" library="songs"/>
-    <assets path="assets/shared" library="shared"/>
+    <assets path="assets/songs" library="songs" exclude="*.ogg" if="web"/>
+    <assets path="assets/songs" library="songs" exclude="*.mp3" unless="web"/>
+    <assets path="assets/shared" library="shared" exclude="*.ogg" if="web"/>
+    <assets path="assets/shared" library="shared" exclude="*.mp3" unless="web"/>
     <assets path="assets/fonts" embed="true"/>
     <assets path="mobile" rename="assets/mobile" if="mobile"/>
 
-    <!-- Preload -->
-    <define name="PRELOAD_ALL"/>
     <library name="songs" preload="true"/>
-    <library name="shared" preload="true"/>
+    <section if="PRELOAD_ALL"><library name="shared" preload="true"/></section>
 
-    <!-- Mobile-safe libs -->
+    <!-- ======================================================
+         HAXELIBS
+    ====================================================== -->
     <haxelib name="flixel"/>
-    <haxelib name="flixel-ui"/>
     <haxelib name="flixel-addons"/>
+    <haxelib name="flixel-ui"/>
     <haxelib name="openfl"/>
     <haxelib name="lime"/>
-    <haxelib name="hxvlc" if="android"/>
-    <haxelib name="flxanimate"/>
-    <haxelib name="json2object"/>
-    <haxelib name="polymod"/>
     <haxelib name="hscript"/>
+    <haxelib name="polymod"/>
+    <haxelib name="json2object"/>
+    <haxelib name="flxanimate"/>
+    <haxelib name="hxvlc" if="desktop || android"/>
+    <haxelib name="hxdiscord_rpc" if="desktop"/>
+    <haxelib name="grig.audio"/>
+    <haxelib name="funkin.vis"/>
 
-    <!-- Desktop only libs removed: funkin.vis / grig.audio -->
-
-    <!-- Safety defines -->
+    <!-- ======================================================
+         GLOBAL SAFETY FLAGS
+    ====================================================== -->
     <haxedef name="HXCPP_NO_NIL"/>
-    <haxedef name="HXCPP_NO_PCH"/>
     <haxedef name="HXCPP_STACK_TRACE"/>
     <haxedef name="HXCPP_STACK_LINE"/>
     <haxedef name="HXCPP_CHECK_POINTER"/>
-
+    <haxedef name="HXCPP_GC_BIG_BLOCKS"/>
+    <haxedef name="SCRIPTABLE"/>
     <haxeflag name="-dce no"/>
 
-    <!-- Remove ALL macros for Mobile -->
-    <haxedef name="NO_MACROS" if="mobile"/>
+    <!-- ======================================================
+         MACROS
+    ====================================================== -->
+    <haxeflag name="--macro" value="include('api')"/>
+    <haxeflag name="--macro" value="include('audio')"/>
+    <haxeflag name="--macro" value="include('backend')"/>
+    <haxeflag name="--macro" value="include('controls')"/>
+    <haxeflag name="--macro" value="include('data')"/>
+    <haxeflag name="--macro" value="include('graphics')"/>
+    <haxeflag name="--macro" value="include('modding')"/>
+    <haxeflag name="--macro" value="include('play')"/>
+    <haxeflag name="--macro" value="include('scripting')"/>
+    <haxeflag name="--macro" value="include('ui')"/>
+    <haxeflag name="--macro" value="include('util')"/>
 
-    <section unless="NO_MACROS">
-        <haxeflag name="--macro" value="include('api')"/>
-        <haxeflag name="--macro" value="include('audio')"/>
-        <haxeflag name="--macro" value="include('backend')"/>
-        <haxeflag name="--macro" value="include('controls')"/>
-        <haxeflag name="--macro" value="include('data')"/>
-        <haxeflag name="--macro" value="include('graphics')"/>
-        <haxeflag name="--macro" value="include('modding')"/>
-        <haxeflag name="--macro" value="include('play')"/>
-        <haxeflag name="--macro" value="include('scripting')"/>
-        <haxeflag name="--macro" value="include('ui')"/>
-        <haxeflag name="--macro" value="include('util')"/>
-    </section>
-
-    <!-- Android -->
+    <!-- ======================================================
+         ANDROID
+    ====================================================== -->
     <section if="android">
+        <define name="MOBILE_BUILD"/>
+        <haxedef name="HXCPP_NO_PCH"/>
+
         <config>
             <android gradle-version="7.4.2" gradle-plugin="7.3.1"/>
-            <android platform="android-33"/>
-            <android min-sdk-version="16"/>
-            <android target-sdk-version="30"/>
+            <android platform="android-35"/>
+            <android min-sdk-version="16" target-sdk-version="30" max-sdk-version="33"/>
             <android abi="armeabi-v7a"/>
             <android bundle="false"/>
         </config>
     </section>
 
-    <!-- iOS -->
+    <!-- ======================================================
+         iOS
+    ====================================================== -->
     <section if="ios">
+        <define name="MOBILE_BUILD"/>
         <define name="objc"/>
+        <haxeflag name="-D" value="HXCPP_NO_PCH"/>
         <ios linker-flags="-ObjC"/>
     </section>
+
+    <!-- ======================================================
+         ICONS
+    ====================================================== -->
+    <icon path="art/icons/dave16.png" size="16"/>
+    <icon path="art/icons/dave32.png" size="32"/>
+    <icon path="art/icons/dave64.png" size="64"/>
+    <icon path="art/icons/dave.png"/>
 
 </project>
