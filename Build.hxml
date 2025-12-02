@@ -1,0 +1,72 @@
+# ============================================
+#   CLEAN BUILD.HXML — NO NIL / NO MACRO BUGS
+#   Compatible with: Windows, Linux, macOS,
+#                     Android, iOS
+# ============================================
+
+# ----- Source -----
+-cp source
+-main Main
+
+# ----- Libraries -----
+-lib flixel
+-lib flixel-ui
+-lib flixel-addons
+-lib lime
+-lib openfl
+-lib hxvlc
+-lib hscript
+-lib polymod
+-lib json2object
+-lib flxanimate
+-lib grig.audio
+-lib funkin.vis
+-lib hxdiscord_rpc
+
+# (Optional) If hxCodec is needed:
+# -lib hxCodec
+
+# ----- Flags -----
+-D scriptable
+-D openfl-enable-handle-error
+-D no-deprecation-warnings
+-D HXCPP_STACK_TRACE
+-D HXCPP_STACK_LINE
+-D HXCPP_CHECK_POINTER
+
+# Prevent ANY Objective-C “Nil” conflict:
+-D HXCPP_NO_NIL
+
+# Disable PCH on mobile (Android/iOS)
+# This fixes the `typeinfo` missing error
+-D HXCPP_NO_PCH
+
+# Faster builds, keeps debugging symbols
+--no-traces
+
+# Remove dead-code elimination issues
+-dce no
+
+# ----- Desktop targets -----
+# (Used when called through lime directly)
+# --neko
+# --interp
+
+# ----- Output (Lime handles this automatically) -----
+# (Do not modify — lime generates platform-specific output)
+
+# ----- Automatically include all classpaths -----
+--macro include('api')
+--macro include('audio')
+--macro include('backend')
+--macro include('controls')
+--macro include('data')
+--macro include('graphics')
+--macro include('modding')
+--macro include('play')
+--macro include('scripting')
+--macro include('ui')
+--macro include('util')
+
+# Required by Flixel
+--macro addMetadata('@:build(util.macro.FlxMacro.buildFlxBasic())', 'flixel.FlxBasic')
