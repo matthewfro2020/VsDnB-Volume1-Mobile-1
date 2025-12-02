@@ -306,7 +306,7 @@ class Dialogue extends FlxSpriteGroup implements IDialogueScriptedClass implemen
 
     function buildBackground():Void
     {
-        background = new FlxSprite().makeGraphic(1, 1, 0xFF8A9AF5);
+        background = new FlxZSprite().makeGraphic(1, 1, 0xFF8A9AF5);
         background.scale.set(FlxG.width * 2, FlxG.height * 2);
         background.scrollFactor.set();
         background.alpha = 0.0;
@@ -316,7 +316,7 @@ class Dialogue extends FlxSpriteGroup implements IDialogueScriptedClass implemen
 
     function createDialogueBox():Void
     {
-		dialogueBox = new FlxSprite(0, 325);
+		dialogueBox = new FlxZSprite(0, 325);
 		dialogueBox.frames = Paths.getSparrowAtlas('ui/dialogue/speech_bubble_talking');
 		dialogueBox.animation.addByPrefix('normal', 'chatboxnorm', 24);
 		dialogueBox.animation.addByPrefix('none', 'chatboxnone', 24);
@@ -335,7 +335,7 @@ class Dialogue extends FlxSpriteGroup implements IDialogueScriptedClass implemen
 		dialogueText.font = Paths.font('comic.ttf');
 		dialogueText.color = 0xFF000000;
 		dialogueText.antialiasing = true;
-        dialogueText.zIndex = 30;
+        cast(dialogueText, Dynamic).zIndex = 30; // safest cast
         dialogueText.completeCallback = onTypingComplete;
 		add(dialogueText);
     }
@@ -526,6 +526,7 @@ class Dialogue extends FlxSpriteGroup implements IDialogueScriptedClass implemen
                 return;
 
             // Revive the speaker as it was previously killed.
+			speaker = cast speaker; // ensures zIndex exists if speaker is FlxZSprite
             speaker.revive();
             speaker.zIndex = 10;
             add(speaker);
