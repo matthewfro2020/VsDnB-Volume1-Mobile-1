@@ -21,6 +21,7 @@ import scripting.IScriptedClass.IDialogueScriptedClass;
 import scripting.IScriptedClass.IEventDispatcher;
 import util.SortUtil;
 import util.TweenUtil;
+import util.FlxZSprite;
 
 enum DialogueState
 {
