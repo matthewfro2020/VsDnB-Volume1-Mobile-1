@@ -23,6 +23,7 @@ jobs:
 
       - name: Determine Version
         id: ver
+        shell: bash
         run: |
           if git describe --tags --exact-match >/dev/null 2>&1; then
             TAG=$(git describe --tags --exact-match)
