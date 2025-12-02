@@ -2,9 +2,8 @@
 <project>
 
     <!-- ==========================================
-         CORE SETTINGS
+         APPLICATION SETTINGS
     ========================================== -->
-
     <app title="VS. Dave and Bambi"
          file="VsDave"
          packageName="dnbteam.daveandbambi"
@@ -19,27 +18,23 @@
     <!-- ==========================================
          WINDOW SETTINGS
     ========================================== -->
-
     <window width="1280" height="720" fps="120" hardware="true" vsync="true" background="0x0000ffff"/>
     <window if="html5" resizable="true"/>
-    <window if="desktop" hardware="true" allow-shaders="true" require-shaders="true" orientation="landscape" resizable="true"/>
+    <window if="desktop" hardware="true" allow-shaders="true" require-shaders="true" resizable="true"/>
     <window if="mac" allow-high-dpi="true" resizable="true"/>
     <window if="mobile" fullscreen="true" allow-high-dpi="true" allow-shaders="true" require-shaders="true"/>
 
     <!-- ==========================================
          PATHS & ASSETS
     ========================================== -->
-
     <classpath name="source"/>
 
     <assets path="assets/preload" rename="assets" exclude="*.ogg" if="web"/>
     <assets path="assets/preload" rename="assets" exclude="*.mp3" unless="web"/>
-
     <assets path="assets/preload/videos" rename="assets/videos" include="*.mp4" embed="false"/>
 
     <assets path="assets/songs" library="songs" exclude="*.ogg" if="web"/>
     <assets path="assets/songs" library="songs" exclude="*.mp3" unless="web"/>
-
     <assets path="assets/shared" library="shared" exclude="*.ogg" if="web"/>
     <assets path="assets/shared" library="shared" exclude="*.mp3" unless="web"/>
 
@@ -50,12 +45,13 @@
     <!-- ==========================================
          PRELOAD LOGIC
     ========================================== -->
-
     <define name="PRELOAD_ALL" unless="web"/>
     <define name="NO_PRELOAD_ALL" unless="PRELOAD_ALL"/>
 
     <library name="songs" preload="true"/>
-    <section if="PRELOAD_ALL"><library name="shared" preload="true"/></section>
+    <section if="PRELOAD_ALL">
+        <library name="shared" preload="true"/>
+    </section>
     <section if="NO_PRELOAD_ALL">
         <library name="songs" preload="false"/>
         <library name="shared" preload="false"/>
@@ -64,7 +60,6 @@
     <!-- ==========================================
          HAXELIBS
     ========================================== -->
-
     <haxelib name="flixel"/>
     <haxelib name="flixel-ui"/>
     <haxelib name="flixel-addons"/>
@@ -75,35 +70,46 @@
     <haxelib name="polymod"/>
     <haxelib name="json2object"/>
     <haxelib name="flxanimate"/>
-    <haxelib name="grig.audio"/>
+    
+    <!-- WARNING: grig.audio breaks iOS & Android -->
+    <!-- <haxelib name="grig.audio"/> -->
+
     <haxelib name="funkin.vis"/>
     <haxelib name="hxdiscord_rpc" if="desktop"/>
 
     <!-- ==========================================
-         GLOBAL DEFINES & SAFETY FLAGS
+         GLOBAL DEFINES
     ========================================== -->
-
     <haxedef name="SCRIPTABLE"/>
     <haxedef name="openfl-enable-handle-error"/>
+
     <haxedef name="HXCPP_STACK_TRACE"/>
     <haxedef name="HXCPP_STACK_LINE"/>
     <haxedef name="HXCPP_CHECK_POINTER"/>
     <haxedef name="HXCPP_GC_BIG_BLOCKS"/>
-    <haxedef name="NO_PRELOAD_ALL"/>
-
-    <!-- Remove all Nil conflicts (iOS/macOS/ARM/Clang) -->
-    <haxedef name="HXCPP_NO_NIL"/>
-
-    <!-- Disable PCH for Android/iOS (fixes typeinfo error) -->
-    <haxedef name="HXCPP_NO_PCH"/>
 
     <haxeflag name="-dce no"/>
 
     <!-- ==========================================
+         thx.Nil FIX (THE REAL FIX)
+         Renames thx.Nil -> ThxNil so ObjC Nil doesn't conflict
+    ========================================== -->
+    <haxeflag name="--macro"
+              value="haxe.macro.Compiler.addGlobalMetadata('thx.Nil','@:rename(ThxNil)')" />
+
+    <haxeflag name="--macro"
+              value="haxe.macro.Compiler.addGlobalMetadata('thx._Tuple.Tuple0_Impl_','@:remove')" />
+
+    <!-- ==========================================
+         DISABLE PCH ON MOBILE
+         Prevents 'typeinfo' missing on Clang ARM targets
+    ========================================== -->
+    <haxedef name="HXCPP_NO_PCH" if="android || ios"/>
+
+    <!-- ==========================================
          MACROS
     ========================================== -->
-
-    <haxeflag name="--macro" value="addMetadata('@:build(util.macro.FlxMacro.buildFlxBasic())', 'flixel.FlxBasic')"/>
+    <haxeflag name="--macro" value="addMetadata('@:build(util.macro.FlxMacro.buildFlxBasic())','flixel.FlxBasic')"/>
     <haxeflag name="--macro" value="include('api')"/>
     <haxeflag name="--macro" value="include('audio')"/>
     <haxeflag name="--macro" value="include('backend')"/>
@@ -119,7 +125,6 @@
     <!-- ==========================================
          ANDROID CONFIG
     ========================================== -->
-
     <section if="android">
         <config>
             <android gradle-version="7.4.2" gradle-plugin="7.3.1"/>
@@ -131,9 +136,8 @@
     </section>
 
     <!-- ==========================================
-         iOS CONFIG
+         IOS CONFIG
     ========================================== -->
-
     <section if="ios">
         <define name="objc"/>
         <ios linker-flags="-ObjC"/>
@@ -142,7 +146,6 @@
     <!-- ==========================================
          ICONS
     ========================================== -->
-
     <icon path="art/icons/dave16.png" size="16"/>
     <icon path="art/icons/dave32.png" size="32"/>
     <icon path="art/icons/dave64.png" size="64"/>
