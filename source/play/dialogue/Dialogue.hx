@@ -82,12 +82,12 @@ class Dialogue extends FlxSpriteGroup implements IDialogueScriptedClass implemen
     /**
      * The backdrop that appears behind the dialogue box.
      */
-    var background:FlxSprite;
+    var background:FlxZSprite;
 
     /**
      * The actual dialogue box sprite that overlayed under the text.
      */
-    var dialogueBox:FlxSprite;
+    var dialogueBox:FlxZSprite;
 
     /**
      * The text inside of the dialogue box that actually displays the dialogue.
