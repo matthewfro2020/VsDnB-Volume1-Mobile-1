@@ -1,7 +1,19 @@
 <?xml version="1.0" encoding="utf-8"?>
 <project>
 
-    <!-- _________________________ Application Settings _________________________ -->
+    <!-- --------------------------------------------- -->
+    <!-- GLOBAL FIXES                                  -->
+    <!-- --------------------------------------------- -->
+
+    <!-- Prevent thx.Nil ←→ Objective-C Nil conflict -->
+    <haxedef name="HXCPP_NO_NIL"/>
+
+    <!-- Avoid Clang PCH issues on ARMv7 / Android -->
+    <haxedef name="HXCPP_NO_PCH"/>
+
+    <!-- --------------------------------------------- -->
+    <!-- Application Settings                           -->
+    <!-- --------------------------------------------- -->
 
     <app title="VS. Dave and Bambi"
          file="VsDave"
@@ -14,18 +26,21 @@
     <app preloader="flixel.system.FlxPreloader"/>
     <set name="SWF_VERSION" value="11.8"/>
 
-    <!-- ____________________________ Window Settings ___________________________ -->
+    <!-- --------------------------------------------- -->
+    <!-- Window Settings                                -->
+    <!-- --------------------------------------------- -->
 
     <window width="1280" height="720" fps="120" hardware="true" vsync="true" background="0x0000ffff"/>
     <window if="html5" resizable="true"/>
-    <window if="desktop" hardware="true" allow-shaders="true" require-shaders="true"
-            orientation="landscape" fullscreen="false" resizable="true" vsync="false"/>
-    <window if="mac" orientation="auto" fullscreen="false" resizable="true" vsync="false"
-            allow-high-dpi="true"/>
-    <window if="mobile" orientation="landscape" fullscreen="true" resizable="false"
-            allow-shaders="true" require-shaders="true" allow-high-dpi="true"/>
+    <window if="desktop" hardware="true" allow-shaders="true" require-shaders="true" orientation="landscape"
+            fullscreen="false" resizable="true" vsync="false"/>
+    <window if="mac" orientation="auto" fullscreen="false" resizable="true" vsync="false" allow-high-dpi="true"/>
+    <window if="mobile" orientation="landscape" fullscreen="true" resizable="false" allow-shaders="true"
+            require-shaders="true" allow-high-dpi="true"/>
 
-    <!-- _____________________________ Path Settings ____________________________ -->
+    <!-- --------------------------------------------- -->
+    <!-- Paths & Build Directories                      -->
+    <!-- --------------------------------------------- -->
 
     <classpath name="source"/>
 
@@ -35,12 +50,18 @@
 
     <define name="mobileC" if="mobile"/>
 
-    <!-- Assets -->
+    <!-- --------------------------------------------- -->
+    <!-- Assets                                        -->
+    <!-- --------------------------------------------- -->
+
     <assets path="assets/preload" rename="assets" exclude="*.ogg" if="web"/>
     <assets path="assets/preload" rename="assets" exclude="*.mp3" unless="web"/>
+
     <assets path="assets/preload/videos" rename="assets/videos" include="*.mp4" embed="false"/>
+
     <assets path="assets/songs" library="songs" exclude="*.ogg" if="web"/>
     <assets path="assets/songs" library="songs" exclude="*.mp3" unless="web"/>
+
     <assets path="assets/shared" library="shared" exclude="*.ogg" if="web"/>
     <assets path="assets/shared" library="shared" exclude="*.mp3" unless="web"/>
 
@@ -49,19 +70,9 @@
     <assets path="assets/fonts" embed="true"/>
     <assets path="mobile" rename="assets/mobile" if="mobileC"/>
 
-    <!-- Preload logic -->
-    <define name="SHADERS_ENABLED"/>
-    <define name="PRELOAD_ALL" unless="web"/>
-    <define name="NO_PRELOAD_ALL" unless="PRELOAD_ALL"/>
-
-    <library name="songs" preload="true"/>
-    <section if="PRELOAD_ALL"><library name="shared" preload="true"/></section>
-    <section if="NO_PRELOAD_ALL">
-        <library name="songs" preload="false"/>
-        <library name="shared" preload="false"/>
-    </section>
-
-    <!-- _______________________________ Libraries ______________________________ -->
+    <!-- --------------------------------------------- -->
+    <!-- Libraries                                      -->
+    <!-- --------------------------------------------- -->
 
     <haxedev set="webgl"/>
 
@@ -77,9 +88,14 @@
     <haxelib name="grig.audio"/>
     <haxelib name="funkin.vis"/>
 
+    <!-- --------------------------------------------- -->
+    <!-- Haxe Flags                                      -->
+    <!-- --------------------------------------------- -->
+
     <haxedef name="FLX_NO_FOCUS_LOST_SCREEN"/>
     <haxedef name="FLX_NO_DEBUG" unless="debug"/>
     <haxedef name="NAPE_RELEASE_BUILD" unless="debug"/>
+
     <haxedef name="HXCPP_GC_BIG_BLOCKS"/>
     <haxedef name="HXCPP_STACK_LINE"/>
     <haxedef name="HXCPP_STACK_TRACE"/>
@@ -95,11 +111,14 @@
     <haxedef name="POLYMOD_MOD_METADATA_FILE" value="_polymod_meta.json"/>
     <haxedef name="POLYMOD_MOD_ICON_FILE" value="_polymod_icon.png/"/>
 
-    <haxedef name="openfl-enable-handle-error"/>
     <haxeflag name="-dce no"/>
 
-    <!-- Macros -->
+    <!-- --------------------------------------------- -->
+    <!-- Build Macros                                   -->
+    <!-- --------------------------------------------- -->
+
     <haxeflag name="--macro" value="addMetadata('@:build(util.macro.FlxMacro.buildFlxBasic())', 'flixel.FlxBasic')"/>
+
     <haxeflag name="--macro" value="include('api')"/>
     <haxeflag name="--macro" value="include('audio')"/>
     <haxeflag name="--macro" value="include('backend')"/>
@@ -112,7 +131,21 @@
     <haxeflag name="--macro" value="include('ui')"/>
     <haxeflag name="--macro" value="include('util')"/>
 
-    <!-- ___________________________ ANDROID CONFIG ___________________________ -->
+    <!-- --------------------------------------------- -->
+    <!-- *** REAL FIX FOR OBJECTIVE-C NIL ***          -->
+    <!-- --------------------------------------------- -->
+
+    <haxeflag name="--macro"
+        value="
+            haxe.macro.Context.onGenerate(function(_) {
+                try haxe.macro.Context.renameType('thx.Nil', 'ThxNil') catch(e:Dynamic) {}
+                try haxe.macro.Context.renameType('thx._Tuple.Tuple0_Impl_', 'ThxTuple0_Impl_') catch(e:Dynamic) {}
+            })
+        "/>
+
+    <!-- --------------------------------------------- -->
+    <!-- Android Configuration                          -->
+    <!-- --------------------------------------------- -->
 
     <section if="android">
         <config>
@@ -122,30 +155,29 @@
             <android bundle="false"/>
             <android abi="armeabi-v7a"/>
         </config>
-
-        <!-- Fix ARMv7 / NDK 23+ -->
-        <haxeflag name="-D" value="HXCPP_NO_PCH"/>
     </section>
 
-    <!-- ___________________________ IOS / MAC NIL FIX _________________________ -->
+    <!-- --------------------------------------------- -->
+    <!-- iOS Configuration                               -->
+    <!-- --------------------------------------------- -->
 
     <section if="ios">
         <define name="objc"/>
         <ios linker-flags="-ObjC"/>
-        <haxeflag name="-D" value="cpp_no_nil"/>
     </section>
 
-    <section if="mac">
-        <haxeflag name="-D" value="cpp_no_nil"/>
-    </section>
-
-    <!-- _________________________________ Icons _______________________________ -->
+    <!-- --------------------------------------------- -->
+    <!-- Icons                                           -->
+    <!-- --------------------------------------------- -->
 
     <icon path="art/icons/dave16.png" size="16"/>
     <icon path="art/icons/dave32.png" size="32"/>
     <icon path="art/icons/dave64.png" size="64"/>
     <icon path="art/icons/dave.png"/>
 
+    <!-- --------------------------------------------- -->
+    <!-- Linux Fix                                       -->
+    <!-- --------------------------------------------- -->
     <target id="haxe" tool="linker" if="linux">
         <lib name="/usr/lib64/libX11.so" if="HXCPP_M64"/>
     </target>
