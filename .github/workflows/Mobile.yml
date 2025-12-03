@@ -36,6 +36,41 @@ jobs:
         with:
           haxe-version: 4.3.6
 
+      # ----------------------------
+      # Flixel 4.11 + Correct Libs
+      # ----------------------------
+      - name: Install Haxelibs
+        run: |
+          haxelib install hxcpp
+          haxelib install lime 8.2.0
+          haxelib set lime 8.2.0
+          haxelib install openfl 9.2.1
+          haxelib set openfl 9.2.1
+
+          haxelib install flixel 4.11.0
+          haxelib set flixel 4.11.0
+
+          haxelib install flixel-addons 2.10.0
+          haxelib set flixel-addons 2.10.0
+
+          haxelib install flixel-ui 2.3.3
+          haxelib set flixel-ui 2.3.3
+
+          haxelib install json2object
+          haxelib install polymod
+          haxelib install hscript
+          haxelib install hxvlc
+
+          # Discord RPC library
+          haxelib git discord_rpc https://github.com/Aidan63/linc_discord-rpc
+
+          # Optionally run HMM if project uses it
+          haxelib install hmm
+          haxelib run hmm install
+
+      # ----------------------------
+      # ANDROID SETUP
+      # ----------------------------
       - name: Setup Android SDK
         if: startsWith(matrix.os, 'ubuntu')
         uses: android-actions/setup-android@v3
@@ -43,23 +78,6 @@ jobs:
           api-level: 33
           ndk: 25.1.8937393
           cmake: 3.22.1
-
-      - name: Install Haxelibs
-        run: |
-          haxelib install hxcpp
-          haxelib install lime
-          haxelib install openfl
-          haxelib install flixel
-          haxelib install flixel-ui
-          haxelib install flixel-addons
-          haxelib install flxanimate
-          haxelib install json2object
-          haxelib install polymod
-          haxelib install hscript
-          haxelib install hxvlc
-          haxelib git discord_rpc https://github.com/Aidan63/linc_discord-rpc
-          haxelib install hmm
-          haxelib run hmm install
 
       - name: Configure Android
         if: startsWith(matrix.os, 'ubuntu')
@@ -73,6 +91,9 @@ jobs:
         if: startsWith(matrix.os, 'ubuntu')
         run: haxelib run lime build android -D officialBuild -ONLY_ARMV7
 
+      # ----------------------------
+      # IOS BUILD
+      # ----------------------------
       - name: Build iOS
         if: startsWith(matrix.os, 'macos')
         run: haxelib run lime build ios -nosign -D officialBuild -DMOBILE_BUILD
@@ -85,6 +106,9 @@ jobs:
           mv *.app Payload
           zip -r ~/ios-${{ steps.ver.outputs.version }}.ipa Payload
 
+      # ----------------------------
+      # PULL OUTPUTS TO /build
+      # ----------------------------
       - name: Gather Mobile Builds
         run: |
           mkdir build
@@ -100,6 +124,9 @@ jobs:
           name: mobile-builds
           path: build/*
 
+  # ----------------------------
+  # RELEASE JOB
+  # ----------------------------
   Release:
     needs: Build-Mobile
     runs-on: ubuntu-latest
@@ -118,10 +145,8 @@ jobs:
           body: |
             Automated Mobile Release  
             Built from commit ${{ github.sha }}
-
           files: |
             release/**/*.apk
             release/**/*.ipa
-
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
