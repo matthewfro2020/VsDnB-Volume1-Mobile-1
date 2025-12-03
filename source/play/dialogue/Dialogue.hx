@@ -435,13 +435,13 @@ class Dialogue extends FlxSpriteGroup implements IDialogueScriptedClass implemen
 
     function fadeInSpeaker(side:String):Void
     {
-        var push:Float =
-            switch (side)
-            {
-                case "left": -100;
-                case "right": 100;
-                default: -50;
-            };
+
+var push:Float = switch (side)
+{
+    case "left": -100;
+    case "right": 100;
+    default: -50;
+};
 
         speaker.x += push;
         speaker.alpha = 0;
