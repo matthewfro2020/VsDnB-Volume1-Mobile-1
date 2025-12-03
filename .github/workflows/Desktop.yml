@@ -3,9 +3,9 @@ name: Desktop Builds
 on:
   push:
     tags:
-      - "v*.*.*"     # ← Release builds only when a version tag is pushed
+      - "v*.*.*"
     branches:
-      - main          # allow dev builds on main
+      - main
   workflow_dispatch:
 
 jobs:
@@ -19,7 +19,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
         with:
-          fetch-depth: 0     # Required for Git tags
+          fetch-depth: 0
 
       - name: Determine Version
         id: ver
@@ -45,26 +45,42 @@ jobs:
           sudo apt update
           sudo apt install -y libvlc-dev libvlccore-dev
 
+      # ------------------------------------------------------------
+      #                CORRECT FLIXEL 4.x DEPENDENCIES
+      # ------------------------------------------------------------
       - name: Install Haxelib Dependencies
         run: |
           haxelib install hxcpp
-          haxelib install lime
-          haxelib install openfl
-          haxelib install flixel
-          haxelib install flixel-ui
-          haxelib install flixel-addons
-          haxelib install flxanimate
+          haxelib install lime 8.2.0
+          haxelib set lime 8.2.0
+
+          haxelib install openfl 9.2.1
+          haxelib set openfl 9.2.1
+
+          haxelib install flixel 4.11.0
+          haxelib set flixel 4.11.0
+
+          haxelib install flixel-addons 2.10.0
+          haxelib set flixel-addons 2.10.0
+
+          haxelib install flixel-ui 2.3.3
+          haxelib set flixel-ui 2.3.3
+
           haxelib install json2object
           haxelib install polymod
           haxelib install hscript
           haxelib install hxvlc
+
+          # Discord RPC
           haxelib git discord_rpc https://github.com/Aidan63/linc_discord-rpc
+
+          # (Optional) HMM dependencies
           haxelib install hmm
           haxelib run hmm install
 
-      # ------------------------ #
-      #        BUILD JOBS        #
-      # ------------------------ #
+      # ------------------------------------------------------------
+      #                PLATFORM BUILDS
+      # ------------------------------------------------------------
 
       - name: Build Windows
         if: startsWith(matrix.os, 'windows')
@@ -78,9 +94,9 @@ jobs:
         if: startsWith(matrix.os, 'macos')
         run: haxelib run lime build mac -D officialBuild
 
-      # ------------------------ #
-      #     ZIP OUTPUT BUILDS    #
-      # ------------------------ #
+      # ------------------------------------------------------------
+      #                     ZIP OUTPUTS
+      # ------------------------------------------------------------
 
       - name: Zip Desktop Build
         run: |
@@ -93,11 +109,10 @@ jobs:
           name: desktop-${{ matrix.os }}
           path: build/*.zip
 
-  # -------------------------------------------------------------
-  #                   AUTOMATIC RELEASE JOB
-  # -------------------------------------------------------------
+  # ------------------------------------------------------------
+  #                     RELEASE JOB
+  # ------------------------------------------------------------
   Release:
-    # Only run when a tag push triggers the workflow
     if: startsWith(github.ref, 'refs/tags/')
     needs: Build-Desktop
     runs-on: ubuntu-latest
